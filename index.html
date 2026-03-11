@@ -1,423 +1,668 @@
 <!DOCTYPE html>  
 <html lang="de">  
 <head>  
-  <meta charset="UTF-8">  
-  <title>Einsatz- / Dienst-App (Online)</title>  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  
-  <!-- Damit sich die Seite wie eine App auf dem Handy anfühlt -->  
-  <meta name="apple-mobile-web-app-capable" content="yes">  
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">  
-  <meta name="mobile-web-app-capable" content="yes">  
-  
-  <style>  
-    body {  
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;  
-      max-width: 800px;  
-      margin: 0 auto;  
-      padding: 10px 12px 40px;  
-      background: #f5f5f7;  
-    }  
-    h1 {  
-      font-size: 22px;  
-      margin: 8px 0 4px;  
-      text-align: center;  
-    }  
-    h2 {  
-      font-size: 17px;  
-      margin: 14px 0 6px;  
-    }  
-    .card {  
-      background: #ffffff;  
-      border-radius: 8px;  
-      padding: 10px 12px;  
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);  
-      margin-bottom: 12px;  
-    }  
-    .row {  
-      margin-bottom: 8px;  
-    }  
-    label {  
-      display: block;  
-      font-size: 13px;  
-      margin-bottom: 2px;  
-      color: #444;  
-    }  
-    input[type="text"],  
-    input[type="date"],  
-    input[type="time"],  
-    select,  
-    textarea {  
-      padding: 6px;  
-      width: 100%;  
-      box-sizing: border-box;  
-      font-size: 14px;  
-      border-radius: 4px;  
-      border: 1px solid #ccc;  
-      background: #fff;  
-    }  
-    textarea {  
-      min-height: 60px;  
-      resize: vertical;  
-    }  
-    .time-row {  
-      display: flex;  
-      gap: 6px;  
-    }  
-    .time-row > div {  
-      flex: 1;  
-    }  
-    button {  
-      padding: 8px 12px;  
-      margin: 5px 3px 5px 0;  
-      cursor: pointer;  
-      font-size: 14px;  
-      border-radius: 4px;  
-      border: 1px solid #007aff;  
-      background: #007aff;  
-      color: white;  
-    }  
-    button.secondary {  
-      background: #f2f2f2;  
-      color: #007aff;  
-      border-color: #007aff;  
-    }  
-    button.danger {  
-      background: #ff3b30;  
-      border-color: #ff3b30;  
-      color: #fff;  
-    }  
-    #liste {  
-      margin-top: 8px;  
-    }  
-    .person {  
-      background: #ffffff;  
-      border-radius: 6px;  
-      padding: 8px 10px;  
-      margin-bottom: 8px;  
-      border: 1px solid #ddd;  
-      display: flex;  
-      justify-content: space-between;  
-      gap: 8px;  
-    }  
-    .person-info {  
-      font-size: 13px;  
-    }  
-    .person-info strong {  
-      font-size: 14px;  
-    }  
-    .small {  
-      font-size: 12px;  
-      color: #666;  
-    }  
-    .count-label {  
-      font-size: 13px;  
-      margin-top: 4px;  
-    }  
-  </style>  
+    <meta charset="UTF-8">  
+    <title>Anwesenheitsliste Feuerwehr</title>  
+    <!-- jsPDF über CDN einbinden -->  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"  
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>  
+    <style>  
+        body {  
+            font-family: Arial, sans-serif;  
+            margin: 20px;  
+        }  
+        h1 {  
+            text-align: center;  
+        }  
+        .form-group {  
+            margin-bottom: 10px;  
+        }  
+        label {  
+            display: inline-block;  
+            min-width: 120px;  
+            font-weight: bold;  
+        }  
+        input[type="text"], input[type="date"], input[type="time"], select, textarea {  
+            padding: 4px;  
+            font-size: 14px;  
+        }  
+        textarea {  
+            width: 100%;  
+            max-width: 800px;  
+            height: 80px;  
+        }  
+        #teilnehmer-liste {  
+            display: flex;  
+            flex-wrap: wrap;  
+            max-width: 900px;  
+            border: 1px solid #ccc;  
+            padding: 10px;  
+            margin-top: 10px;  
+        }  
+        .person {  
+            width: 50%;  
+            box-sizing: border-box;  
+            padding: 2px 4px;  
+            font-size: 14px;  
+        }  
+        .person-row {  
+            display: flex;  
+            align-items: center;  
+            gap: 6px;  
+            flex-wrap: wrap;  
+        }  
+        .person-name {  
+            flex: 1;  
+            min-width: 180px;  
+        }  
+        .role-label {  
+            font-weight: normal;  
+            font-size: 12px;  
+        }  
+        .role-label input {  
+            margin-right: 2px;  
+        }  
+        button {  
+            margin-top: 15px;  
+            padding: 8px 16px;  
+            font-size: 14px;  
+        }  
+        #anzahl-anwesende {  
+            margin-top: 10px;  
+            font-weight: bold;  
+        }  
+        .roles-header {  
+            font-size: 12px;  
+            margin-bottom: 4px;  
+            color: #555;  
+        }  
+    </style>  
 </head>  
 <body>  
+    <h1>Anwesenheitsliste</h1>  
   
-  <h1>Einsatz- / Dienst-App</h1>  
-  
-  <div class="card">  
-    <h2>Einsatz- / Dienstdaten</h2>  
-  
-    <div class="row">  
-      <label for="datum">Datum</label>  
-      <input type="date" id="datum">  
+    <div class="form-group">  
+        <label for="datum">Datum:</label>  
+        <input type="date" id="datum">  
     </div>  
   
-    <div class="row">  
-      <label>Uhrzeit</label>  
-      <div class="time-row">  
-        <div><input type="time" id="uhrzeitVon" placeholder="von"></div>  
-        <div><input type="time" id="uhrzeitBis" placeholder="bis"></div>  
-      </div>  
+    <div class="form-group">  
+        <label for="von">Uhrzeit von:</label>  
+        <input type="time" id="von">  
     </div>  
   
-    <div class="row">  
-      <label for="art">Art</label>  
-      <select id="art">  
-        <option value="">Bitte wählen</option>  
-        <option value="Dienst">Dienst</option>  
-        <option value="Einsatz">Einsatz</option>  
-      </select>  
+    <div class="form-group">  
+        <label for="bis">Uhrzeit bis:</label>  
+        <input type="time" id="bis">  
     </div>  
   
-    <div class="row">  
-      <label for="beschreibung">Beschreibung</label>  
-      <textarea id="beschreibung" placeholder="Kurzbeschreibung des Dienstes / Einsatzes"></textarea>  
-    </div>  
-  </div>  
-  
-  <div class="card">  
-    <h2>Person hinzufügen</h2>  
-  
-    <div class="row">  
-      <label for="name">Name</label>  
-      <input type="text" id="name" placeholder="Name eingeben">  
+    <div class="form-group">  
+        <label for="art">Art:</label>  
+        <select id="art">  
+            <option value="Einsatz">Einsatz</option>  
+            <option value="Übungsdienst">Übungsdienst</option>  
+        </select>  
     </div>  
   
-    <div class="row">  
-      <label for="fahrzeug">Fahrzeug</label>  
-      <select id="fahrzeug">  
-        <option value="">Bitte wählen</option>  
-        <option value="ELW">ELW</option>  
-        <option value="LF">LF</option>  
-        <option value="HLF">HLF</option>  
-        <option value="GW-L2">GW-L2</option>  
-        <option value="MTW">MTW</option>  
-        <option value="Feuerwehrhaus">Feuerwehrhaus</option>  
-      </select>  
+    <div class="form-group">  
+        <label for="freitext">Freitext:</label><br>  
+        <textarea id="freitext" placeholder="z.B. Übungsthema, Einsatzort, Bemerkungen ..."></textarea>  
     </div>  
   
-    <div class="row">  
-      <label for="funktion">Funktion</label>  
-      <select id="funktion">  
-        <option value="">Bitte wählen</option>  
-        <option value="GF">GF</option>  
-        <option value="MA">MA</option>  
-        <option value="ME">ME</option>  
-        <option value="ATF">ATF</option>  
-        <option value="ATM">ATM</option>  
-        <option value="WTF">WTF</option>  
-        <option value="WTM">WTM</option>  
-        <option value="STF">STF</option>  
-        <option value="STM">STM</option>  
-      </select>  
+    <h3>Anwesende Personen (ankreuzen)</h3>  
+    <div class="roles-header">  
+        Hinweis: Haken bei „Anwesend“ setzen, optional zusätzlich GF und/oder MA.  
     </div>  
   
-    <button onclick="addPerson()">Zur Liste hinzufügen</button>  
-    <button class="secondary" onclick="clearPersonInputs()">Personenfelder leeren</button>  
-  </div>  
+    <div id="teilnehmer-liste">  
+        <!-- Jede Person: Anwesend, GF, MA -->  
+        <div class="person">  
+          <div class="person-row">  
+            <label class="person-name">  
+              <input type="checkbox" class="anw" data-name="Armbrecht, Dustin">  
+              Armbrecht, Dustin  
+            </label>  
+            <label class="role-label">  
+              <input type="checkbox" class="gf"> GF  
+            </label>  
+            <label class="role-label">  
+              <input type="checkbox" class="ma"> MA  
+            </label>  
+          </div>  
+        </div>  
   
-  <div class="card">  
-    <h2>Personenliste</h2>  
-    <div id="liste"></div>  
-    <div id="countLabel" class="count-label small"></div>  
-    <button class="danger" onclick="clearAll()">Gesamte Liste löschen</button>  
-    <div class="small" style="margin-top:4px;">  
-      Hinweis: Die Liste bleibt nur so lange erhalten, wie die Seite geöffnet ist.  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Berneburg, Jens"> Berneburg, Jens</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Bliedung, Lena"> Bliedung, Lena</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Breuwers, Till"> Breuwers, Till</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Churchman, Ben"> Churchman, Ben</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Edeltraud"> Fedder, Edeltraud</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Jan"> Fedder, Jan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Jörg"> Fedder, Jörg</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Kavin"> Fedder, Kavin</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Gattermann, Tim"> Gattermann, Tim</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Gerlich, Christian"> Gerlich, Christian</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Glatzer, Miriam"> Glatzer, Miriam</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Görz, Tom"> Görz, Tom</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Hariri, Saeid"> Hariri, Saeid</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Hartmann, Marius"> Hartmann, Marius</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Hausmann, Nico"> Hausmann, Nico</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Heidelberg, Jan"> Heidelberg, Jan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Heinz, Christopher"> Heinz, Christopher</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Heinz, Daniela"> Heinz, Daniela</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Hillebrecht, Christian"> Hillebrecht, Christian</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Just, Sebastian"> Just, Sebastian</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Klaproth, Torben"> Klaproth, Torben</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Klinge, Florian"> Klinge, Florian</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Knoth, Andreas"> Knoth, Andreas</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kohlrausch, Celina"> Kohlrausch, Celina</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kohlstruck, Dennis"> Kohlstruck, Dennis</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kohlstruck, Lisa"> Kohlstruck, Lisa</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kreiter, Jan"> Kreiter, Jan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kreiter, Lars"> Kreiter, Lars</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Krone,Thomas"> Krone,Thomas</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kümmritz, Emily"> Kümmritz, Emily</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Kümmritz, Natalie"> Kümmritz, Natalie</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditschke, Dennis"> Leditschke, Dennis</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditschke, Sabrina"> Leditschke, Sabrina</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditschke, Sophia"> Leditschke, Sophia</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditsckke, Tim"> Leditsckke, Tim</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Lemke, Thomas"> Lemke, Thomas</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Limburg, Sebastian"> Limburg, Sebastian</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Müller, Andreas"> Müller, Andreas</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Müller, Gerhard"> Müller, Gerhard</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Müller, Stephan"> Müller, Stephan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Neuse, Marco"> Neuse, Marco</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pamp, Dunja"> Pamp, Dunja</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pamp, Stefan"> Pamp, Stefan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pinnecke, Michael"> Pinnecke, Michael</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Probst, Kai"> Probst, Kai</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Probst, Marvin"> Probst, Marvin</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm, Dominic"> Pülm, Dominic</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm, Gian-Lucca"> Pülm, Gian-Lucca</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm, Marc-Dennis"> Pülm, Marc-Dennis</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm-Wolf, Alexandra"> Pülm-Wolf, Alexandra</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Püschel, Felix"> Püschel, Felix</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Püschel, Jens"> Püschel, Jens</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Redecker, Dirk"> Redecker, Dirk</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Redecker, Stefan"> Redecker, Stefan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Christoph"> Riehn, Christoph</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Holger"> Riehn, Holger</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Martin"> Riehn, Martin</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Paul"> Riehn, Paul</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Ritter, Sascha"> Ritter, Sascha</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Röder, David"> Röder, David</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Rott, Kai"> Rott, Kai</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Rott, Stefan"> Rott, Stefan</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Sakolowski, Bastian"> Sakolowski, Bastian</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Sakolowski, Katja"> Sakolowski, Katja</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Strauß, Marleen"> Strauß, Marleen</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Tetzlaff, Dominic"> Tetzlaff, Dominic</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Vasel, Rene"> Vasel, Rene</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Vogt, Sascha"> Vogt, Sascha</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Weiner, Danny"> Weiner, Danny</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Wellnitz, Mika"> Wellnitz, Mika</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Wellnitz, Sven"> Wellnitz, Sven</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
+  
+        <div class="person"><div class="person-row">  
+          <label class="person-name"><input type="checkbox" class="anw" data-name="Wenk, Ute"> Wenk, Ute</label>  
+          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
+        </div></div>  
     </div>  
-  </div>  
   
-  <div class="card">  
-    <h2>Ausgabe</h2>  
-    <button onclick="downloadPDF()">PDF erstellen & herunterladen</button>  
-    <div class="small" style="margin-top:4px;">  
-      Hinweis: Internetverbindung nötig, damit jsPDF vom CDN geladen wird.  
-    </div>  
-  </div>  
+    <div id="anzahl-anwesende">Gesamt anwesend: 0</div>  
   
-  <!-- jsPDF von CDN laden -->  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"  
-          crossorigin="anonymous" referrerpolicy="no-referrer"></script>  
+    <button onclick="generierePDF()">PDF erzeugen</button>  
   
-  <script>  
-    let personen = [];  
+    <script>  
+        // Anwesende-Checkboxen (für Zähler und PDF)  
+        const anwCheckboxes = document.querySelectorAll('#teilnehmer-liste input.anw');  
+        const anzahlAnzeige = document.getElementById('anzahl-anwesende');  
   
-    function addPerson() {  
-      const name = document.getElementById('name').value.trim();  
-      const fahrzeug = document.getElementById('fahrzeug').value;  
-      const funktion = document.getElementById('funktion').value;  
-  
-      if (!name) { alert('Bitte einen Namen eingeben.'); return; }  
-      if (!fahrzeug) { alert('Bitte ein Fahrzeug wählen.'); return; }  
-      if (!funktion) { alert('Bitte eine Funktion wählen.'); return; }  
-  
-      personen.push({ name, fahrzeug, funktion });  
-      updateList();  
-      clearPersonInputs();  
-    }  
-  
-    function clearPersonInputs() {  
-      document.getElementById('name').value = '';  
-      document.getElementById('fahrzeug').value = '';  
-      document.getElementById('funktion').value = '';  
-    }  
-  
-    function deletePerson(index) {  
-      if (!confirm('Diese Person wirklich löschen?')) return;  
-      personen.splice(index, 1);  
-      updateList();  
-    }  
-  
-    function clearAll() {  
-      if (!confirm('Wirklich die gesamte Personenliste löschen?')) return;  
-      personen = [];  
-      updateList();  
-    }  
-  
-    function updateList() {  
-      const liste = document.getElementById('liste');  
-      const countLabel = document.getElementById('countLabel');  
-      liste.innerHTML = '';  
-  
-      if (personen.length === 0) {  
-        liste.innerHTML = "<span class='small'>Noch keine Personen eingetragen.</span>";  
-        countLabel.textContent = '';  
-        return;  
-      }  
-  
-      personen.forEach((p, index) => {  
-        const div = document.createElement('div');  
-        div.className = 'person';  
-  
-        const info = document.createElement('div');  
-        info.className = 'person-info';  
-        info.innerHTML =  
-          "<strong>" + escapeHtml(p.name) + "</strong><br>" +  
-          "Fahrzeug: " + escapeHtml(p.fahrzeug) +  
-          " • Funktion: " + escapeHtml(p.funktion);  
-  
-        const delBtn = document.createElement('button');  
-        delBtn.className = 'danger';  
-        delBtn.style.padding = '4px 8px';  
-        delBtn.style.fontSize = '12px';  
-        delBtn.textContent = 'X';  
-        delBtn.onclick = () => deletePerson(index);  
-  
-        div.appendChild(info);  
-        div.appendChild(delBtn);  
-        liste.appendChild(div);  
-      });  
-  
-      const anzahl = personen.length;  
-      countLabel.textContent = "Gesamt: " + anzahl + " Person" + (anzahl === 1 ? "" : "en");  
-    }  
-  
-    function escapeHtml(str) {  
-      if (!str) return "";  
-      return str  
-        .replace(/&/g, "&amp;")  
-        .replace(/</g, "&lt;")  
-        .replace(/>/g, "&gt;")  
-        .replace(/"/g, "&quot;")  
-        .replace(/'/g, "&#039;");  
-    }  
-  
-    function downloadPDF() {  
-      if (personen.length === 0) {  
-        alert("Es sind noch keine Personen in der Liste.");  
-        return;  
-      }  
-  
-      if (!window.jspdf || !window.jspdf.jsPDF) {  
-        alert(  
-          "PDF-Bibliothek (jsPDF) konnte nicht geladen werden.\n" +  
-          "Bitte stelle sicher, dass eine Internetverbindung besteht\n" +  
-          "und dass cdnjs.cloudflare.com nicht blockiert ist."  
-        );  
-        return;  
-      }  
-  
-      const datum = document.getElementById('datum').value || "";  
-      const uhrzeitVon = document.getElementById('uhrzeitVon').value || "";  
-      const uhrzeitBis = document.getElementById('uhrzeitBis').value || "";  
-      const art = document.getElementById('art').value || "";  
-      const beschreibung = document.getElementById('beschreibung').value || "";  
-  
-      const { jsPDF } = window.jspdf;  
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });  
-  
-      let x = 10;  
-      let y = 15;  
-      const lineHeight = 7;  
-  
-      // Überschrift  
-      doc.setFont("Helvetica", "bold");  
-      doc.setFontSize(16);  
-      doc.text("Einsatz- / Dienstliste", x, y);  
-      y += 8;  
-  
-      // Allgemeine Daten  
-      doc.setFontSize(11);  
-      doc.setFont("Helvetica", "normal");  
-  
-      if (art) { doc.text("Art: " + art, x, y); y += lineHeight; }  
-  
-      if (datum) {  
-        let datumText = datum;  
-        try {  
-          const d = new Date(datum);  
-          if (!isNaN(d)) datumText = d.toLocaleDateString("de-DE");  
-        } catch (e) {}  
-        doc.text("Datum: " + datumText, x, y);  
-        y += lineHeight;  
-      }  
-  
-      if (uhrzeitVon || uhrzeitBis) {  
-        doc.text("Uhrzeit: " + (uhrzeitVon || "?") + " - " + (uhrzeitBis || "?"), x, y);  
-        y += lineHeight;  
-      }  
-  
-      if (beschreibung) {  
-        const wrapWidth = 180;  
-        const beschrZeilen = doc.splitTextToSize("Beschreibung: " + beschreibung, wrapWidth);  
-        doc.text(beschrZeilen, x, y);  
-        y += beschrZeilen.length * 5 + 2;  
-      }  
-  
-      // Gesamtanzahl der Personen  
-      const anzahl = personen.length;  
-      const anzahlText = "Gesamt: " + anzahl + " Person" + (anzahl === 1 ? "" : "en");  
-      doc.text(anzahlText, x, y);  
-      y += lineHeight + 2;  
-  
-      // Überschrift Personenliste  
-      doc.setFont("Helvetica", "bold");  
-      doc.text("Personen:", x, y);  
-      y += lineHeight;  
-  
-      doc.setFont("Helvetica", "normal");  
-  
-      // Personenliste: Name, Fahrzeug, Funktion in EINER Zeile  
-      for (let i = 0; i < personen.length; i++) {  
-        const p = personen[i];  
-  
-        if (y > 280) {  
-          doc.addPage();  
-          y = 15;  
-          doc.setFont("Helvetica", "bold");  
-          doc.text("Personen (Fortsetzung):", x, y);  
-          y += lineHeight;  
-          doc.setFont("Helvetica", "normal");  
+        function updateAnzahl() {  
+            let count = 0;  
+            anwCheckboxes.forEach(cb => {  
+                if (cb.checked) count++;  
+            });  
+            anzahlAnzeige.textContent = "Gesamt anwesend: " + count;  
         }  
   
-        const zeile =  
-          (i + 1) + ". " +  
-          (p.name || "") +  
-          " – Fahrzeug: " + (p.fahrzeug || "") +  
-          " – Funktion: " + (p.funktion || "");  
+        anwCheckboxes.forEach(cb => {  
+            cb.addEventListener('change', updateAnzahl);  
+        });  
   
-        doc.text(zeile, x, y);  
-        y += lineHeight;  
-      }  
+        function generierePDF() {  
+            if (!window.jspdf || !window.jspdf.jsPDF) {  
+                alert("PDF-Bibliothek (jsPDF) konnte nicht geladen werden.");  
+                return;  
+            }  
+            const { jsPDF } = window.jspdf;  
+            const doc = new jsPDF();  
   
-      const pdfBlob = doc.output("blob");  
-      const url = URL.createObjectURL(pdfBlob);  
+            const datum = document.getElementById('datum').value;  
+            const von = document.getElementById('von').value;  
+            const bis = document.getElementById('bis').value;  
+            const art = document.getElementById('art').value;  
+            const freitext = document.getElementById('freitext').value;  
   
-      const now = new Date();  
-      const pad = n => n.toString().padStart(2, "0");  
-      const fileName =  
-        "Einsatzliste_" +  
-        now.getFullYear() + "-" +  
-        pad(now.getMonth() + 1) + "-" +  
-        pad(now.getDate()) + "_" +  
-        pad(now.getHours()) + "-" +  
-        pad(now.getMinutes()) +  
-        ".pdf";  
+            // Anwesende mit Rollen sammeln  
+            let anwesende = [];  
+            anwCheckboxes.forEach(cb => {  
+                if (cb.checked) {  
+                    const personDiv = cb.closest('.person-row');  
+                    const name = cb.getAttribute('data-name');  
+                    const gf = personDiv.querySelector('.gf').checked;  
+                    const ma = personDiv.querySelector('.ma').checked;  
+                    let rollen = [];  
+                    if (gf) rollen.push("GF");  
+                    if (ma) rollen.push("MA");  
   
-      const a = document.createElement("a");  
-      a.href = url;  
-      a.download = fileName;  
-      document.body.appendChild(a);  
-      a.click();  
-      document.body.removeChild(a);  
+                    let eintrag = name;  
+                    if (rollen.length > 0) {  
+                        eintrag += " (" + rollen.join(", ") + ")";  
+                    }  
+                    anwesende.push(eintrag);  
+                }  
+            });  
   
-      setTimeout(() => URL.revokeObjectURL(url), 60000);  
-    }  
-  </script>  
+            const gesamt = anwesende.length;  
+  
+            let y = 10;  
+            doc.setFontSize(16);  
+            doc.text("Anwesenheitsliste Feuerwehr", 10, y);  
+            y += 8;  
+  
+            doc.setFontSize(12);  
+            doc.text("Datum: " + (datum || "-"), 10, y); y += 6;  
+            doc.text("Zeit: " + (von || "-") + " bis " + (bis || "-"), 10, y); y += 6;  
+            doc.text("Art: " + art, 10, y); y += 8;  
+  
+            doc.text("Freitext:", 10, y); y += 6;  
+            const freitextZeilen = doc.splitTextToSize(freitext || "-", 180);  
+            doc.text(freitextZeilen, 10, y);  
+            y += freitextZeilen.length * 6 + 4;  
+  
+            doc.text("Anwesende (" + gesamt + "):", 10, y);  
+            y += 6;  
+  
+            if (gesamt === 0) {  
+                doc.text("Keine Teilnehmer ausgewählt.", 10, y);  
+            } else {  
+                // Jede Person in eigener Zeile, ggf. auf mehrere Seiten umbrechen  
+                anwesende.forEach((zeile, index) => {  
+                    if (y > 280) {  
+                        doc.addPage();  
+                        y = 10;  
+                        doc.setFontSize(12);  
+                        doc.text("Anwesende (Fortsetzung):", 10, y);  
+                        y += 6;  
+                    }  
+                    doc.text((index + 1) + ". " + zeile, 10, y);  
+                    y += 6;  
+                });  
+            }  
+  
+            // Datei speichern – Name aus Datum und Art  
+            let filename = "Anwesenheit_";  
+            if (datum) filename += datum + "_";  
+            filename += art + ".pdf";  
+  
+            doc.save(filename);  
+        }  
+    </script>  
 </body>  
 </html>  
