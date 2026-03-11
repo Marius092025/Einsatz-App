@@ -1,0 +1,423 @@
+<!DOCTYPE html>  
+<html lang="de">  
+<head>  
+  <meta charset="UTF-8">  
+  <title>Einsatz- / Dienst-App (Online)</title>  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  
+  <!-- Damit sich die Seite wie eine App auf dem Handy anfühlt -->  
+  <meta name="apple-mobile-web-app-capable" content="yes">  
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">  
+  <meta name="mobile-web-app-capable" content="yes">  
+  
+  <style>  
+    body {  
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;  
+      max-width: 800px;  
+      margin: 0 auto;  
+      padding: 10px 12px 40px;  
+      background: #f5f5f7;  
+    }  
+    h1 {  
+      font-size: 22px;  
+      margin: 8px 0 4px;  
+      text-align: center;  
+    }  
+    h2 {  
+      font-size: 17px;  
+      margin: 14px 0 6px;  
+    }  
+    .card {  
+      background: #ffffff;  
+      border-radius: 8px;  
+      padding: 10px 12px;  
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);  
+      margin-bottom: 12px;  
+    }  
+    .row {  
+      margin-bottom: 8px;  
+    }  
+    label {  
+      display: block;  
+      font-size: 13px;  
+      margin-bottom: 2px;  
+      color: #444;  
+    }  
+    input[type="text"],  
+    input[type="date"],  
+    input[type="time"],  
+    select,  
+    textarea {  
+      padding: 6px;  
+      width: 100%;  
+      box-sizing: border-box;  
+      font-size: 14px;  
+      border-radius: 4px;  
+      border: 1px solid #ccc;  
+      background: #fff;  
+    }  
+    textarea {  
+      min-height: 60px;  
+      resize: vertical;  
+    }  
+    .time-row {  
+      display: flex;  
+      gap: 6px;  
+    }  
+    .time-row > div {  
+      flex: 1;  
+    }  
+    button {  
+      padding: 8px 12px;  
+      margin: 5px 3px 5px 0;  
+      cursor: pointer;  
+      font-size: 14px;  
+      border-radius: 4px;  
+      border: 1px solid #007aff;  
+      background: #007aff;  
+      color: white;  
+    }  
+    button.secondary {  
+      background: #f2f2f2;  
+      color: #007aff;  
+      border-color: #007aff;  
+    }  
+    button.danger {  
+      background: #ff3b30;  
+      border-color: #ff3b30;  
+      color: #fff;  
+    }  
+    #liste {  
+      margin-top: 8px;  
+    }  
+    .person {  
+      background: #ffffff;  
+      border-radius: 6px;  
+      padding: 8px 10px;  
+      margin-bottom: 8px;  
+      border: 1px solid #ddd;  
+      display: flex;  
+      justify-content: space-between;  
+      gap: 8px;  
+    }  
+    .person-info {  
+      font-size: 13px;  
+    }  
+    .person-info strong {  
+      font-size: 14px;  
+    }  
+    .small {  
+      font-size: 12px;  
+      color: #666;  
+    }  
+    .count-label {  
+      font-size: 13px;  
+      margin-top: 4px;  
+    }  
+  </style>  
+</head>  
+<body>  
+  
+  <h1>Einsatz- / Dienst-App</h1>  
+  
+  <div class="card">  
+    <h2>Einsatz- / Dienstdaten</h2>  
+  
+    <div class="row">  
+      <label for="datum">Datum</label>  
+      <input type="date" id="datum">  
+    </div>  
+  
+    <div class="row">  
+      <label>Uhrzeit</label>  
+      <div class="time-row">  
+        <div><input type="time" id="uhrzeitVon" placeholder="von"></div>  
+        <div><input type="time" id="uhrzeitBis" placeholder="bis"></div>  
+      </div>  
+    </div>  
+  
+    <div class="row">  
+      <label for="art">Art</label>  
+      <select id="art">  
+        <option value="">Bitte wählen</option>  
+        <option value="Dienst">Dienst</option>  
+        <option value="Einsatz">Einsatz</option>  
+      </select>  
+    </div>  
+  
+    <div class="row">  
+      <label for="beschreibung">Beschreibung</label>  
+      <textarea id="beschreibung" placeholder="Kurzbeschreibung des Dienstes / Einsatzes"></textarea>  
+    </div>  
+  </div>  
+  
+  <div class="card">  
+    <h2>Person hinzufügen</h2>  
+  
+    <div class="row">  
+      <label for="name">Name</label>  
+      <input type="text" id="name" placeholder="Name eingeben">  
+    </div>  
+  
+    <div class="row">  
+      <label for="fahrzeug">Fahrzeug</label>  
+      <select id="fahrzeug">  
+        <option value="">Bitte wählen</option>  
+        <option value="ELW">ELW</option>  
+        <option value="LF">LF</option>  
+        <option value="HLF">HLF</option>  
+        <option value="GW-L2">GW-L2</option>  
+        <option value="MTW">MTW</option>  
+        <option value="Feuerwehrhaus">Feuerwehrhaus</option>  
+      </select>  
+    </div>  
+  
+    <div class="row">  
+      <label for="funktion">Funktion</label>  
+      <select id="funktion">  
+        <option value="">Bitte wählen</option>  
+        <option value="GF">GF</option>  
+        <option value="MA">MA</option>  
+        <option value="ME">ME</option>  
+        <option value="ATF">ATF</option>  
+        <option value="ATM">ATM</option>  
+        <option value="WTF">WTF</option>  
+        <option value="WTM">WTM</option>  
+        <option value="STF">STF</option>  
+        <option value="STM">STM</option>  
+      </select>  
+    </div>  
+  
+    <button onclick="addPerson()">Zur Liste hinzufügen</button>  
+    <button class="secondary" onclick="clearPersonInputs()">Personenfelder leeren</button>  
+  </div>  
+  
+  <div class="card">  
+    <h2>Personenliste</h2>  
+    <div id="liste"></div>  
+    <div id="countLabel" class="count-label small"></div>  
+    <button class="danger" onclick="clearAll()">Gesamte Liste löschen</button>  
+    <div class="small" style="margin-top:4px;">  
+      Hinweis: Die Liste bleibt nur so lange erhalten, wie die Seite geöffnet ist.  
+    </div>  
+  </div>  
+  
+  <div class="card">  
+    <h2>Ausgabe</h2>  
+    <button onclick="downloadPDF()">PDF erstellen & herunterladen</button>  
+    <div class="small" style="margin-top:4px;">  
+      Hinweis: Internetverbindung nötig, damit jsPDF vom CDN geladen wird.  
+    </div>  
+  </div>  
+  
+  <!-- jsPDF von CDN laden -->  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"  
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>  
+  
+  <script>  
+    let personen = [];  
+  
+    function addPerson() {  
+      const name = document.getElementById('name').value.trim();  
+      const fahrzeug = document.getElementById('fahrzeug').value;  
+      const funktion = document.getElementById('funktion').value;  
+  
+      if (!name) { alert('Bitte einen Namen eingeben.'); return; }  
+      if (!fahrzeug) { alert('Bitte ein Fahrzeug wählen.'); return; }  
+      if (!funktion) { alert('Bitte eine Funktion wählen.'); return; }  
+  
+      personen.push({ name, fahrzeug, funktion });  
+      updateList();  
+      clearPersonInputs();  
+    }  
+  
+    function clearPersonInputs() {  
+      document.getElementById('name').value = '';  
+      document.getElementById('fahrzeug').value = '';  
+      document.getElementById('funktion').value = '';  
+    }  
+  
+    function deletePerson(index) {  
+      if (!confirm('Diese Person wirklich löschen?')) return;  
+      personen.splice(index, 1);  
+      updateList();  
+    }  
+  
+    function clearAll() {  
+      if (!confirm('Wirklich die gesamte Personenliste löschen?')) return;  
+      personen = [];  
+      updateList();  
+    }  
+  
+    function updateList() {  
+      const liste = document.getElementById('liste');  
+      const countLabel = document.getElementById('countLabel');  
+      liste.innerHTML = '';  
+  
+      if (personen.length === 0) {  
+        liste.innerHTML = "<span class='small'>Noch keine Personen eingetragen.</span>";  
+        countLabel.textContent = '';  
+        return;  
+      }  
+  
+      personen.forEach((p, index) => {  
+        const div = document.createElement('div');  
+        div.className = 'person';  
+  
+        const info = document.createElement('div');  
+        info.className = 'person-info';  
+        info.innerHTML =  
+          "<strong>" + escapeHtml(p.name) + "</strong><br>" +  
+          "Fahrzeug: " + escapeHtml(p.fahrzeug) +  
+          " • Funktion: " + escapeHtml(p.funktion);  
+  
+        const delBtn = document.createElement('button');  
+        delBtn.className = 'danger';  
+        delBtn.style.padding = '4px 8px';  
+        delBtn.style.fontSize = '12px';  
+        delBtn.textContent = 'X';  
+        delBtn.onclick = () => deletePerson(index);  
+  
+        div.appendChild(info);  
+        div.appendChild(delBtn);  
+        liste.appendChild(div);  
+      });  
+  
+      const anzahl = personen.length;  
+      countLabel.textContent = "Gesamt: " + anzahl + " Person" + (anzahl === 1 ? "" : "en");  
+    }  
+  
+    function escapeHtml(str) {  
+      if (!str) return "";  
+      return str  
+        .replace(/&/g, "&amp;")  
+        .replace(/</g, "&lt;")  
+        .replace(/>/g, "&gt;")  
+        .replace(/"/g, "&quot;")  
+        .replace(/'/g, "&#039;");  
+    }  
+  
+    function downloadPDF() {  
+      if (personen.length === 0) {  
+        alert("Es sind noch keine Personen in der Liste.");  
+        return;  
+      }  
+  
+      if (!window.jspdf || !window.jspdf.jsPDF) {  
+        alert(  
+          "PDF-Bibliothek (jsPDF) konnte nicht geladen werden.\n" +  
+          "Bitte stelle sicher, dass eine Internetverbindung besteht\n" +  
+          "und dass cdnjs.cloudflare.com nicht blockiert ist."  
+        );  
+        return;  
+      }  
+  
+      const datum = document.getElementById('datum').value || "";  
+      const uhrzeitVon = document.getElementById('uhrzeitVon').value || "";  
+      const uhrzeitBis = document.getElementById('uhrzeitBis').value || "";  
+      const art = document.getElementById('art').value || "";  
+      const beschreibung = document.getElementById('beschreibung').value || "";  
+  
+      const { jsPDF } = window.jspdf;  
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });  
+  
+      let x = 10;  
+      let y = 15;  
+      const lineHeight = 7;  
+  
+      // Überschrift  
+      doc.setFont("Helvetica", "bold");  
+      doc.setFontSize(16);  
+      doc.text("Einsatz- / Dienstliste", x, y);  
+      y += 8;  
+  
+      // Allgemeine Daten  
+      doc.setFontSize(11);  
+      doc.setFont("Helvetica", "normal");  
+  
+      if (art) { doc.text("Art: " + art, x, y); y += lineHeight; }  
+  
+      if (datum) {  
+        let datumText = datum;  
+        try {  
+          const d = new Date(datum);  
+          if (!isNaN(d)) datumText = d.toLocaleDateString("de-DE");  
+        } catch (e) {}  
+        doc.text("Datum: " + datumText, x, y);  
+        y += lineHeight;  
+      }  
+  
+      if (uhrzeitVon || uhrzeitBis) {  
+        doc.text("Uhrzeit: " + (uhrzeitVon || "?") + " - " + (uhrzeitBis || "?"), x, y);  
+        y += lineHeight;  
+      }  
+  
+      if (beschreibung) {  
+        const wrapWidth = 180;  
+        const beschrZeilen = doc.splitTextToSize("Beschreibung: " + beschreibung, wrapWidth);  
+        doc.text(beschrZeilen, x, y);  
+        y += beschrZeilen.length * 5 + 2;  
+      }  
+  
+      // Gesamtanzahl der Personen  
+      const anzahl = personen.length;  
+      const anzahlText = "Gesamt: " + anzahl + " Person" + (anzahl === 1 ? "" : "en");  
+      doc.text(anzahlText, x, y);  
+      y += lineHeight + 2;  
+  
+      // Überschrift Personenliste  
+      doc.setFont("Helvetica", "bold");  
+      doc.text("Personen:", x, y);  
+      y += lineHeight;  
+  
+      doc.setFont("Helvetica", "normal");  
+  
+      // Personenliste: Name, Fahrzeug, Funktion in EINER Zeile  
+      for (let i = 0; i < personen.length; i++) {  
+        const p = personen[i];  
+  
+        if (y > 280) {  
+          doc.addPage();  
+          y = 15;  
+          doc.setFont("Helvetica", "bold");  
+          doc.text("Personen (Fortsetzung):", x, y);  
+          y += lineHeight;  
+          doc.setFont("Helvetica", "normal");  
+        }  
+  
+        const zeile =  
+          (i + 1) + ". " +  
+          (p.name || "") +  
+          " – Fahrzeug: " + (p.fahrzeug || "") +  
+          " – Funktion: " + (p.funktion || "");  
+  
+        doc.text(zeile, x, y);  
+        y += lineHeight;  
+      }  
+  
+      const pdfBlob = doc.output("blob");  
+      const url = URL.createObjectURL(pdfBlob);  
+  
+      const now = new Date();  
+      const pad = n => n.toString().padStart(2, "0");  
+      const fileName =  
+        "Einsatzliste_" +  
+        now.getFullYear() + "-" +  
+        pad(now.getMonth() + 1) + "-" +  
+        pad(now.getDate()) + "_" +  
+        pad(now.getHours()) + "-" +  
+        pad(now.getMinutes()) +  
+        ".pdf";  
+  
+      const a = document.createElement("a");  
+      a.href = url;  
+      a.download = fileName;  
+      document.body.appendChild(a);  
+      a.click();  
+      document.body.removeChild(a);  
+  
+      setTimeout(() => URL.revokeObjectURL(url), 60000);  
+    }  
+  </script>  
+</body>  
+</html>  
