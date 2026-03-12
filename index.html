@@ -1,668 +1,1472 @@
 <!DOCTYPE html>  
 <html lang="de">  
 <head>  
-    <meta charset="UTF-8">  
-    <title>Anwesenheitsliste Feuerwehr</title>  
-    <!-- jsPDF über CDN einbinden -->  
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"  
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>  
-    <style>  
-        body {  
-            font-family: Arial, sans-serif;  
-            margin: 20px;  
-        }  
-        h1 {  
-            text-align: center;  
-        }  
-        .form-group {  
-            margin-bottom: 10px;  
-        }  
-        label {  
-            display: inline-block;  
-            min-width: 120px;  
-            font-weight: bold;  
-        }  
-        input[type="text"], input[type="date"], input[type="time"], select, textarea {  
-            padding: 4px;  
-            font-size: 14px;  
-        }  
-        textarea {  
-            width: 100%;  
-            max-width: 800px;  
-            height: 80px;  
-        }  
-        #teilnehmer-liste {  
-            display: flex;  
-            flex-wrap: wrap;  
-            max-width: 900px;  
-            border: 1px solid #ccc;  
-            padding: 10px;  
-            margin-top: 10px;  
-        }  
-        .person {  
-            width: 50%;  
-            box-sizing: border-box;  
-            padding: 2px 4px;  
-            font-size: 14px;  
-        }  
-        .person-row {  
-            display: flex;  
-            align-items: center;  
-            gap: 6px;  
-            flex-wrap: wrap;  
-        }  
-        .person-name {  
-            flex: 1;  
-            min-width: 180px;  
-        }  
-        .role-label {  
-            font-weight: normal;  
-            font-size: 12px;  
-        }  
-        .role-label input {  
-            margin-right: 2px;  
-        }  
-        button {  
-            margin-top: 15px;  
-            padding: 8px 16px;  
-            font-size: 14px;  
-        }  
-        #anzahl-anwesende {  
-            margin-top: 10px;  
-            font-weight: bold;  
-        }  
-        .roles-header {  
-            font-size: 12px;  
-            margin-bottom: 4px;  
-            color: #555;  
-        }  
-    </style>  
+  <meta charset="UTF-8">  
+  <title>Anwesenheitsliste Feuerwehr (Handy)</title>  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  
+  <!-- jsPDF über CDN -->  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"  
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>  
+  
+  <style>  
+    body {  
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;  
+      margin: 8px;  
+      font-size: 14px;  
+      background:#f5f5f7;  
+    }  
+    h1 {  
+      text-align: center;  
+      margin: 4px 0 8px;  
+      font-size: 20px;  
+    }  
+    .card {  
+      background:#fff;  
+      border-radius:8px;  
+      padding:8px 10px;  
+      margin-bottom:8px;  
+      box-shadow:0 1px 3px rgba(0,0,0,0.08);  
+    }  
+    .form-group {  
+      margin-bottom:6px;  
+    }  
+    label {  
+      font-weight:600;  
+      font-size:13px;  
+      display:block;  
+      margin-bottom:2px;  
+    }  
+    input[type="date"],  
+    input[type="time"],  
+    select,  
+    textarea {  
+      width:100%;  
+      box-sizing:border-box;  
+      font-size:14px;  
+      padding:4px 6px;  
+      border-radius:4px;  
+      border:1px solid #ccc;  
+    }  
+    textarea {  
+      min-height:60px;  
+      resize:vertical;  
+    }  
+  
+    /* Teilnehmerliste Handy-kompakt */  
+    #teilnehmer-liste {  
+      display:flex;  
+      flex-direction:column;  
+      gap:4px;  
+      max-height:60vh;          /* damit man scrollen kann */  
+      overflow-y:auto;  
+    }  
+    .person {  
+      background:#f9f9fb;  
+      border-radius:6px;  
+      padding:4px 6px;  
+      border:1px solid #e0e0e5;  
+    }  
+    .person-top {  
+      display:flex;  
+      align-items:center;  
+      justify-content:space-between;  
+      gap:6px;  
+    }  
+    .person-name {  
+      font-size:13px;  
+      font-weight:500;  
+      flex:1;  
+      display:flex;  
+      align-items:center;  
+      gap:4px;  
+    }  
+    .person-name input[type="checkbox"] {  
+      width:16px;  
+      height:16px;  
+    }  
+    .person-bottom {  
+      margin-top:2px;  
+      display:flex;  
+      flex-wrap:wrap;  
+      gap:4px;  
+    }  
+    .role-label {  
+      font-size:11px;  
+      display:flex;  
+      align-items:center;  
+      gap:2px;  
+    }  
+    .role-label input {  
+      width:14px;  
+      height:14px;  
+    }  
+  
+    button {  
+      margin-top:8px;  
+      padding:8px 10px;  
+      font-size:14px;  
+      border-radius:6px;  
+      border:none;  
+      background:#007aff;  
+      color:#fff;  
+      width:100%;  
+    }  
+    #anzahl-anwesende {  
+      margin-top:6px;  
+      font-weight:600;  
+      font-size:13px;  
+    }  
+    .hint {  
+      font-size:11px;  
+      color:#666;  
+      margin-top:4px;  
+    }  
+  </style>  
 </head>  
 <body>  
-    <h1>Anwesenheitsliste</h1>  
   
+  <h1>Anwesenheit</h1>  
+  
+  <div class="card">  
     <div class="form-group">  
-        <label for="datum">Datum:</label>  
-        <input type="date" id="datum">  
+      <label for="datum">Datum</label>  
+      <input type="date" id="datum">  
     </div>  
-  
     <div class="form-group">  
-        <label for="von">Uhrzeit von:</label>  
-        <input type="time" id="von">  
+      <label for="von">Uhrzeit von</label>  
+      <input type="time" id="von">  
     </div>  
-  
     <div class="form-group">  
-        <label for="bis">Uhrzeit bis:</label>  
-        <input type="time" id="bis">  
+      <label for="bis">Uhrzeit bis</label>  
+      <input type="time" id="bis">  
     </div>  
-  
     <div class="form-group">  
-        <label for="art">Art:</label>  
-        <select id="art">  
-            <option value="Einsatz">Einsatz</option>  
-            <option value="Übungsdienst">Übungsdienst</option>  
-        </select>  
+      <label for="art">Art</label>  
+      <select id="art">  
+        <option value="Einsatz">Einsatz</option>  
+        <option value="Übungsdienst">Übungsdienst</option>  
+      </select>  
     </div>  
-  
     <div class="form-group">  
-        <label for="freitext">Freitext:</label><br>  
-        <textarea id="freitext" placeholder="z.B. Übungsthema, Einsatzort, Bemerkungen ..."></textarea>  
+      <label for="freitext">Freitext</label>  
+      <textarea id="freitext" placeholder="z.B. Übungsthema, Einsatzort, Bemerkungen ..."></textarea>  
     </div>  
+  </div>  
   
-    <h3>Anwesende Personen (ankreuzen)</h3>  
-    <div class="roles-header">  
-        Hinweis: Haken bei „Anwesend“ setzen, optional zusätzlich GF und/oder MA.  
+  <div class="card">  
+    <strong style="font-size:14px;">Anwesende Personen</strong>  
+    <div class="hint">  
+      „Anwesend“ anklicken; optional GF, MA, ELW, LF, HLF, GW‑L2, MTW.  
     </div>  
   
     <div id="teilnehmer-liste">  
-        <!-- Jede Person: Anwesend, GF, MA -->  
-        <div class="person">  
-          <div class="person-row">  
-            <label class="person-name">  
-              <input type="checkbox" class="anw" data-name="Armbrecht, Dustin">  
-              Armbrecht, Dustin  
-            </label>  
-            <label class="role-label">  
-              <input type="checkbox" class="gf"> GF  
-            </label>  
-            <label class="role-label">  
-              <input type="checkbox" class="ma"> MA  
-            </label>  
+  
+      <!-- AB HIER ALLE PERSONEN -->  
+  
+      <!-- Muster:  
+      <div class="person">  
+        <div class="person-top">  
+          <div class="person-name">  
+            <input type="checkbox" class="anw" data-name="Nachname, Vorname">  
+            Nachname, Vorname  
           </div>  
         </div>  
+        <div class="person-bottom">  
+          <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+          <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+          <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+          <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+          <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+          <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+        </div>  
+      </div>  
+      -->  
+  
+      <!-- Armbrecht, Dustin -->  
+      <div class="person">  
+        <div class="person-top">  
+          <div class="person-name">  
+            <input type="checkbox" class="anw" data-name="Armbrecht, Dustin">  
+            Armbrecht, Dustin  
+          </div>  
+        </div>  
+        <div class="person-bottom">  
+          <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+          <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+          <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+          <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+          <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+          <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+          <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+        </div>  
+      </div>  
+  
+      <!-- Berneburg, Jens -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Berneburg, Jens">  
+          Berneburg, Jens  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Bliedung, Lena -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Bliedung, Lena">  
+          Bliedung, Lena  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Breuwers, Till -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Breuwers, Till">  
+          Breuwers, Till  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Churchman, Ben -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Churchman, Ben">  
+          Churchman, Ben  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Fedder, Edeltraud -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Fedder, Edeltraud">  
+          Fedder, Edeltraud  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Fedder, Jan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Fedder, Jan">  
+          Fedder, Jan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Fedder, Jörg -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Fedder, Jörg">  
+          Fedder, Jörg  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Fedder, Kavin -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Fedder, Kavin">  
+          Fedder, Kavin  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Gattermann, Tim -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Gattermann, Tim">  
+          Gattermann, Tim  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Gerlich, Christian -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Gerlich, Christian">  
+          Gerlich, Christian  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Glatzer, Miriam -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Glatzer, Miriam">  
+          Glatzer, Miriam  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Görz, Tom -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Görz, Tom">  
+          Görz, Tom  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Hariri, Saeid -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Hariri, Saeid">  
+          Hariri, Saeid  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Hartmann, Marius -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Hartmann, Marius">  
+          Hartmann, Marius  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Hausmann, Nico -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Hausmann, Nico">  
+          Hausmann, Nico  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Heidelberg, Jan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Heidelberg, Jan">  
+          Heidelberg, Jan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Heinz, Christopher -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Heinz, Christopher">  
+          Heinz, Christopher  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Heinz, Daniela -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Heinz, Daniela">  
+          Heinz, Daniela  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Hillebrecht, Christian -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Hillebrecht, Christian">  
+          Hillebrecht, Christian  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Just, Sebastian -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Just, Sebastian">  
+          Just, Sebastian  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Klaproth, Torben -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Klaproth, Torben">  
+          Klaproth, Torben  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Klinge, Florian -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Klinge, Florian">  
+          Klinge, Florian  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Knoth, Andreas -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Knoth, Andreas">  
+          Knoth, Andreas  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kohlrausch, Celina -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kohlrausch, Celina">  
+          Kohlrausch, Celina  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kohlstruck, Dennis -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kohlstruck, Dennis">  
+          Kohlstruck, Dennis  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kohlstruck, Lisa -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kohlstruck, Lisa">  
+          Kohlstruck, Lisa  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kreiter, Jan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kreiter, Jan">  
+          Kreiter, Jan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kreiter, Lars -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kreiter, Lars">  
+          Kreiter, Lars  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Krone,Thomas -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Krone,Thomas">  
+          Krone,Thomas  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kümmritz, Emily -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kümmritz, Emily">  
+          Kümmritz, Emily  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Kümmritz, Natalie -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Kümmritz, Natalie">  
+          Kümmritz, Natalie  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Leditschke, Dennis -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Leditschke, Dennis">  
+          Leditschke, Dennis  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Leditschke, Sabrina -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Leditschke, Sabrina">  
+          Leditschke, Sabrina  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Leditschke, Sophia -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Leditschke, Sophia">  
+          Leditschke, Sophia  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Leditsckke, Tim -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Leditsckke, Tim">  
+          Leditsckke, Tim  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Lemke, Thomas -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Lemke, Thomas">  
+          Lemke, Thomas  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Limburg, Sebastian -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Limburg, Sebastian">  
+          Limburg, Sebastian  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Müller, Andreas -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Müller, Andreas">  
+          Müller, Andreas  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Müller, Gerhard -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Müller, Gerhard">  
+          Müller, Gerhard  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Müller, Stephan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Müller, Stephan">  
+          Müller, Stephan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Neuse, Marco -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Neuse, Marco">  
+          Neuse, Marco  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pamp, Dunja -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pamp, Dunja">  
+          Pamp, Dunja  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pamp, Stefan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pamp, Stefan">  
+          Pamp, Stefan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pinnecke, Michael -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pinnecke, Michael">  
+          Pinnecke, Michael  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Probst, Kai -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Probst, Kai">  
+          Probst, Kai  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Probst, Marvin -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Probst, Marvin">  
+          Probst, Marvin  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pülm, Dominic -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pülm, Dominic">  
+          Pülm, Dominic  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pülm, Gian-Lucca -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pülm, Gian-Lucca">  
+          Pülm, Gian-Lucca  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pülm, Marc-Dennis -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pülm, Marc-Dennis">  
+          Pülm, Marc-Dennis  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Pülm-Wolf, Alexandra -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Pülm-Wolf, Alexandra">  
+          Pülm-Wolf, Alexandra  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Püschel, Felix -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Püschel, Felix">  
+          Püschel, Felix  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Püschel, Jens -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Püschel, Jens">  
+          Püschel, Jens  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Redecker, Dirk -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Redecker, Dirk">  
+          Redecker, Dirk  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Redecker, Stefan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Redecker, Stefan">  
+          Redecker, Stefan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Riehn, Christoph -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Riehn, Christoph">  
+          Riehn, Christoph  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Riehn, Holger -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Riehn, Holger">  
+          Riehn, Holger  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Riehn, Martin -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Riehn, Martin">  
+          Riehn, Martin  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Riehn, Paul -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Riehn, Paul">  
+          Riehn, Paul  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Ritter, Sascha -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Ritter, Sascha">  
+          Ritter, Sascha  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Röder, David -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Röder, David">  
+          Röder, David  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Rott, Kai -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Rott, Kai">  
+          Rott, Kai  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Rott, Stefan -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Rott, Stefan">  
+          Rott, Stefan  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Sakolowski, Bastian -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Sakolowski, Bastian">  
+          Sakolowski, Bastian  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Sakolowski, Katja -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Sakolowski, Katja">  
+          Sakolowski, Katja  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Strauß, Marleen (nur einmal) -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Strauß, Marleen">  
+          Strauß, Marleen  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Tetzlaff, Dominic -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Tetzlaff, Dominic">  
+          Tetzlaff, Dominic  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Vasel, Rene -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Vasel, Rene">  
+          Vasel, Rene  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Vogt, Sascha -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Vogt, Sascha">  
+          Vogt, Sascha  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Weiner, Danny -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Weiner, Danny">  
+          Weiner, Danny  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Wellnitz, Mika -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Wellnitz, Mika">  
+          Wellnitz, Mika  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Wellnitz, Sven -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Wellnitz, Sven">  
+          Wellnitz, Sven  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
+  
+      <!-- Wenk, Ute -->  
+      <div class="person"><div class="person-top">  
+        <div class="person-name">  
+          <input type="checkbox" class="anw" data-name="Wenk, Ute">  
+          Wenk, Ute  
+        </div>  
+      </div><div class="person-bottom">  
+        <label class="role-label"><input type="checkbox" class="gf">GF</label>  
+        <label class="role-label"><input type="checkbox" class="ma">MA</label>  
+        <label class="role-label"><input type="checkbox" class="elw">ELW</label>  
+        <label class="role-label"><input type="checkbox" class="lf">LF</label>  
+        <label class="role-label"><input type="checkbox" class="hlf">HLF</label>  
+        <label class="role-label"><input type="checkbox" class="gwl2">GW‑L2</label>  
+        <label class="role-label"><input type="checkbox" class="mtw">MTW</label>  
+      </div></div>  
   
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Berneburg, Jens"> Berneburg, Jens</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Bliedung, Lena"> Bliedung, Lena</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Breuwers, Till"> Breuwers, Till</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Churchman, Ben"> Churchman, Ben</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Edeltraud"> Fedder, Edeltraud</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Jan"> Fedder, Jan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Jörg"> Fedder, Jörg</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Fedder, Kavin"> Fedder, Kavin</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Gattermann, Tim"> Gattermann, Tim</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Gerlich, Christian"> Gerlich, Christian</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Glatzer, Miriam"> Glatzer, Miriam</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Görz, Tom"> Görz, Tom</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Hariri, Saeid"> Hariri, Saeid</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Hartmann, Marius"> Hartmann, Marius</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Hausmann, Nico"> Hausmann, Nico</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Heidelberg, Jan"> Heidelberg, Jan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Heinz, Christopher"> Heinz, Christopher</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Heinz, Daniela"> Heinz, Daniela</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Hillebrecht, Christian"> Hillebrecht, Christian</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Just, Sebastian"> Just, Sebastian</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Klaproth, Torben"> Klaproth, Torben</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Klinge, Florian"> Klinge, Florian</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Knoth, Andreas"> Knoth, Andreas</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kohlrausch, Celina"> Kohlrausch, Celina</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kohlstruck, Dennis"> Kohlstruck, Dennis</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kohlstruck, Lisa"> Kohlstruck, Lisa</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kreiter, Jan"> Kreiter, Jan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kreiter, Lars"> Kreiter, Lars</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Krone,Thomas"> Krone,Thomas</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kümmritz, Emily"> Kümmritz, Emily</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Kümmritz, Natalie"> Kümmritz, Natalie</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditschke, Dennis"> Leditschke, Dennis</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditschke, Sabrina"> Leditschke, Sabrina</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditschke, Sophia"> Leditschke, Sophia</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Leditsckke, Tim"> Leditsckke, Tim</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Lemke, Thomas"> Lemke, Thomas</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Limburg, Sebastian"> Limburg, Sebastian</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Müller, Andreas"> Müller, Andreas</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Müller, Gerhard"> Müller, Gerhard</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Müller, Stephan"> Müller, Stephan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Neuse, Marco"> Neuse, Marco</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pamp, Dunja"> Pamp, Dunja</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pamp, Stefan"> Pamp, Stefan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pinnecke, Michael"> Pinnecke, Michael</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Probst, Kai"> Probst, Kai</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Probst, Marvin"> Probst, Marvin</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm, Dominic"> Pülm, Dominic</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm, Gian-Lucca"> Pülm, Gian-Lucca</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm, Marc-Dennis"> Pülm, Marc-Dennis</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Pülm-Wolf, Alexandra"> Pülm-Wolf, Alexandra</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Püschel, Felix"> Püschel, Felix</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Püschel, Jens"> Püschel, Jens</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Redecker, Dirk"> Redecker, Dirk</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Redecker, Stefan"> Redecker, Stefan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Christoph"> Riehn, Christoph</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Holger"> Riehn, Holger</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Martin"> Riehn, Martin</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Riehn, Paul"> Riehn, Paul</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Ritter, Sascha"> Ritter, Sascha</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Röder, David"> Röder, David</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Rott, Kai"> Rott, Kai</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Rott, Stefan"> Rott, Stefan</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Sakolowski, Bastian"> Sakolowski, Bastian</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Sakolowski, Katja"> Sakolowski, Katja</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Strauß, Marleen"> Strauß, Marleen</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Tetzlaff, Dominic"> Tetzlaff, Dominic</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Vasel, Rene"> Vasel, Rene</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Vogt, Sascha"> Vogt, Sascha</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Weiner, Danny"> Weiner, Danny</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Wellnitz, Mika"> Wellnitz, Mika</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Wellnitz, Sven"> Wellnitz, Sven</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
-  
-        <div class="person"><div class="person-row">  
-          <label class="person-name"><input type="checkbox" class="anw" data-name="Wenk, Ute"> Wenk, Ute</label>  
-          <label class="role-label"><input type="checkbox" class="gf"> GF</label>  
-          <label class="role-label"><input type="checkbox" class="ma"> MA</label>  
-        </div></div>  
     </div>  
   
     <div id="anzahl-anwesende">Gesamt anwesend: 0</div>  
+    <div class="hint">  
+      Hinweis: Die Häkchen bleiben nur erhalten, solange die Seite geöffnet ist.  
+    </div>  
+  </div>  
   
+  <div class="card">  
     <button onclick="generierePDF()">PDF erzeugen</button>  
+    <div class="hint">  
+      Für die PDF-Erzeugung wird eine Internetverbindung (zum jsPDF‑CDN) benötigt.  
+    </div>  
+  </div>  
   
-    <script>  
-        // Anwesende-Checkboxen (für Zähler und PDF)  
-        const anwCheckboxes = document.querySelectorAll('#teilnehmer-liste input.anw');  
-        const anzahlAnzeige = document.getElementById('anzahl-anwesende');  
+  <script>  
+    // Anwesend-Checkboxen (für Zähler und PDF)  
+    const anwCheckboxes = document.querySelectorAll('#teilnehmer-liste input.anw');  
+    const anzahlAnzeige = document.getElementById('anzahl-anwesende');  
   
-        function updateAnzahl() {  
-            let count = 0;  
-            anwCheckboxes.forEach(cb => {  
-                if (cb.checked) count++;  
-            });  
-            anzahlAnzeige.textContent = "Gesamt anwesend: " + count;  
+    function updateAnzahl() {  
+      let count = 0;  
+      anwCheckboxes.forEach(cb => { if (cb.checked) count++; });  
+      anzahlAnzeige.textContent = "Gesamt anwesend: " + count;  
+    }  
+    anwCheckboxes.forEach(cb => cb.addEventListener('change', updateAnzahl));  
+  
+    function generierePDF() {  
+      if (!window.jspdf || !window.jspdf.jsPDF) {  
+        alert("PDF-Bibliothek (jsPDF) konnte nicht geladen werden.");  
+        return;  
+      }  
+      const { jsPDF } = window.jspdf;  
+      const doc = new jsPDF();  
+  
+      const datum = document.getElementById('datum').value;  
+      const von   = document.getElementById('von').value;  
+      const bis   = document.getElementById('bis').value;  
+      const art   = document.getElementById('art').value;  
+      const freitext = document.getElementById('freitext').value;  
+  
+      // Anwesende mit Rollen sammeln  
+      let anwesende = [];  
+      anwCheckboxes.forEach(cb => {  
+        if (cb.checked) {  
+          const personDiv = cb.closest('.person');  
+          const name = cb.getAttribute('data-name');  
+  
+          const gf   = personDiv.querySelector('.gf')?.checked;  
+          const ma   = personDiv.querySelector('.ma')?.checked;  
+          const elw  = personDiv.querySelector('.elw')?.checked;  
+          const lf   = personDiv.querySelector('.lf')?.checked;  
+          const hlf  = personDiv.querySelector('.hlf')?.checked;  
+          const gwl2 = personDiv.querySelector('.gwl2')?.checked;  
+          const mtw  = personDiv.querySelector('.mtw')?.checked;  
+  
+          const rollen = [];  
+          if (gf)   rollen.push("GF");  
+          if (ma)   rollen.push("MA");  
+          if (elw)  rollen.push("ELW");  
+          if (lf)   rollen.push("LF");  
+          if (hlf)  rollen.push("HLF");  
+          if (gwl2) rollen.push("GW-L2");  
+          if (mtw)  rollen.push("MTW");  
+  
+          let eintrag = name;  
+          if (rollen.length > 0) eintrag += " (" + rollen.join(", ") + ")";  
+          anwesende.push(eintrag);  
         }  
+      });  
   
-        anwCheckboxes.forEach(cb => {  
-            cb.addEventListener('change', updateAnzahl);  
-        });  
+      const gesamt = anwesende.length;  
   
-        function generierePDF() {  
-            if (!window.jspdf || !window.jspdf.jsPDF) {  
-                alert("PDF-Bibliothek (jsPDF) konnte nicht geladen werden.");  
-                return;  
-            }  
-            const { jsPDF } = window.jspdf;  
-            const doc = new jsPDF();  
+      let y = 10;  
+      doc.setFontSize(16);  
+      doc.text("Anwesenheitsliste Feuerwehr", 10, y);  
+      y += 8;  
   
-            const datum = document.getElementById('datum').value;  
-            const von = document.getElementById('von').value;  
-            const bis = document.getElementById('bis').value;  
-            const art = document.getElementById('art').value;  
-            const freitext = document.getElementById('freitext').value;  
+      doc.setFontSize(12);  
+      doc.text("Datum: " + (datum || "-"), 10, y); y += 5;  
+      doc.text("Zeit: " + (von || "-") + " bis " + (bis || "-"), 10, y); y += 5;  
+      doc.text("Art: " + art, 10, y); y += 7;  
   
-            // Anwesende mit Rollen sammeln  
-            let anwesende = [];  
-            anwCheckboxes.forEach(cb => {  
-                if (cb.checked) {  
-                    const personDiv = cb.closest('.person-row');  
-                    const name = cb.getAttribute('data-name');  
-                    const gf = personDiv.querySelector('.gf').checked;  
-                    const ma = personDiv.querySelector('.ma').checked;  
-                    let rollen = [];  
-                    if (gf) rollen.push("GF");  
-                    if (ma) rollen.push("MA");  
+      doc.text("Freitext:", 10, y); y += 5;  
+      const freitextZeilen = doc.splitTextToSize(freitext || "-", 180);  
+      doc.text(freitextZeilen, 10, y);  
+      y += freitextZeilen.length * 5 + 3;  
   
-                    let eintrag = name;  
-                    if (rollen.length > 0) {  
-                        eintrag += " (" + rollen.join(", ") + ")";  
-                    }  
-                    anwesende.push(eintrag);  
-                }  
-            });  
+      doc.text("Anwesende (gesamt " + gesamt + "):", 10, y);  
+      y += 5;  
   
-            const gesamt = anwesende.length;  
-  
-            let y = 10;  
-            doc.setFontSize(16);  
-            doc.text("Anwesenheitsliste Feuerwehr", 10, y);  
-            y += 8;  
-  
+      if (gesamt === 0) {  
+        doc.text("Keine Teilnehmer ausgewählt.", 10, y);  
+      } else {  
+        anwesende.forEach((zeile, index) => {  
+          if (y > 280) {  
+            doc.addPage();  
+            y = 10;  
             doc.setFontSize(12);  
-            doc.text("Datum: " + (datum || "-"), 10, y); y += 6;  
-            doc.text("Zeit: " + (von || "-") + " bis " + (bis || "-"), 10, y); y += 6;  
-            doc.text("Art: " + art, 10, y); y += 8;  
+            doc.text("Anwesende (Fortsetzung):", 10, y);  
+            y += 5;  
+          }  
+          doc.text((index + 1) + ". " + zeile, 10, y);  
+          y += 5;  
+        });  
+      }  
   
-            doc.text("Freitext:", 10, y); y += 6;  
-            const freitextZeilen = doc.splitTextToSize(freitext || "-", 180);  
-            doc.text(freitextZeilen, 10, y);  
-            y += freitextZeilen.length * 6 + 4;  
-  
-            doc.text("Anwesende (" + gesamt + "):", 10, y);  
-            y += 6;  
-  
-            if (gesamt === 0) {  
-                doc.text("Keine Teilnehmer ausgewählt.", 10, y);  
-            } else {  
-                // Jede Person in eigener Zeile, ggf. auf mehrere Seiten umbrechen  
-                anwesende.forEach((zeile, index) => {  
-                    if (y > 280) {  
-                        doc.addPage();  
-                        y = 10;  
-                        doc.setFontSize(12);  
-                        doc.text("Anwesende (Fortsetzung):", 10, y);  
-                        y += 6;  
-                    }  
-                    doc.text((index + 1) + ". " + zeile, 10, y);  
-                    y += 6;  
-                });  
-            }  
-  
-            // Datei speichern – Name aus Datum und Art  
-            let filename = "Anwesenheit_";  
-            if (datum) filename += datum + "_";  
-            filename += art + ".pdf";  
-  
-            doc.save(filename);  
-        }  
-    </script>  
+      let filename = "Anwesenheit_";  
+      if (datum) filename += datum + "_";  
+      filename += art + ".pdf";  
+      doc.save(filename);  
+    }  
+  </script>  
 </body>  
 </html>  
